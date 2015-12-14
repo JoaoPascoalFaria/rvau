@@ -179,5 +179,6 @@ int main()
  cvReleaseImage(&img);
  cvReleaseImage(&imgGrayScale);
 
+ system("pause");
  return 0;
 }
