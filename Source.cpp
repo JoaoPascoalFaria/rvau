@@ -9,13 +9,13 @@ using namespace cv;
 
 const unsigned NUM_CARDS = 4;
 const unsigned NUM_DECK_CARDS = 52;
-const int CARD_SIZE_X = 250;
-const int CARD_SIZE_Y = 350;
+const int CARD_SIZE_X = 125;
+const int CARD_SIZE_Y = 175;
 
 bool compareContourAreas ( std::vector<cv::Point> contour1, std::vector<cv::Point> contour2 ) {
-    double i = fabs( contourArea(cv::Mat(contour1)) );
-    double j = fabs( contourArea(cv::Mat(contour2)) );
-    return !( i < j );
+    double j = fabs( contourArea(cv::Mat(contour1)) );
+    double i = fabs( contourArea(cv::Mat(contour2)) );
+    return ( i < j );
 }
 
 void rectify(Point2f points[4]) {
@@ -103,7 +103,7 @@ void get_cards( Mat img, Mat warps[], unsigned num_cards) {
 	std::vector<Vec4i> hierarchy;
 
 	// grayscale
-	cvtColor(img, gray, COLOR_BGR2GRAY);
+	cvtColor(img, gray, CV_BGR2GRAY);
 
 	// blur ?
 	GaussianBlur(gray,blur,Size(1,1),0,0,1000);
@@ -129,7 +129,7 @@ void get_cards( Mat img, Mat warps[], unsigned num_cards) {
 	for(unsigned i=0; i<num_cards; i++) {
 	  card = contours[i];
       peri = arcLength(card, true);
-	  approxPolyDP(card, approx, 0.02*peri, true);//std::cout<<"aprox:\n"<<approx<<std::endl;
+	  approxPolyDP(card, approx, 0.05*peri, true);//std::cout<<"aprox:\n"<<approx<<std::endl;
 	  //rect = minAreaRect(approx);
 	  //rect.points( rect_points);
 	  toPoints( approx, rect_points );//std::cout<<"rect_points:\n";for(unsigned i=0; i<4; i++) std::cout<<rect_points[i]<<std::endl;
@@ -168,7 +168,7 @@ void main() {
 	Mat img, deck_img;
 
 	// load images
-	img = imread("hearts_play_rotated.png");
+	img = imread("hearts_play_rotated.jpg");
 	deck_img = imread("cards_deck_fixed.png");
 
 	//get cards in input image
@@ -178,6 +178,45 @@ void main() {
 	//load deck
 	card deck[NUM_DECK_CARDS] = {};
 	load_deck(deck_img, deck);
+
+
+	//find wich cards u have
+	/*Mat diff[NUM_CARDS][NUM_DECK_CARDS];
+	for(unsigned i=0; i<NUM_CARDS; i++) {
+		for(unsigned j=0; j<NUM_DECK_CARDS; j++) {
+			Mat incard,indeckcard,diffcard;
+			//prepare
+			cvtColor(cards[i], incard, CV_BGR2GRAY);
+			GaussianBlur(incard,incard,Size(7,7),0,0);
+
+			cvtColor(deck[j].view, indeckcard, CV_BGR2GRAY);
+			GaussianBlur(indeckcard,indeckcard,Size(1,1),0,0);
+
+			//calc diff
+			absdiff( incard, indeckcard, diffcard);
+
+			//threshold
+			threshold(diffcard,diffcard,30,255,THRESH_BINARY);
+
+			//show
+			imshow("card", incard);
+			imshow("deckcard", indeckcard);
+			imshow("diff", diffcard);
+			waitKey(0);
+		}
+	}
+	/**/
+	/*img1 = cv2.GaussianBlur(img1,(5,5),5)
+  img2 = cv2.GaussianBlur(img2,(5,5),5)    
+  diff = cv2.absdiff(img1,img2)  
+  diff = cv2.GaussianBlur(diff,(5,5),5)*/
+
+	//get winner according to rules
+
+
+	//print over the cards the winner
+
+
 
 	/*//window
 	namedWindow( "OpenCV", WINDOW_AUTOSIZE );
@@ -213,9 +252,11 @@ void main() {
 	}
 	imshow( "OpenCV", drawing );*/
 
-	/*//Draw cards
+	//Draw cards
 	for( unsigned i = 0; i<NUM_CARDS; i++ ){
-		imshow("warp"+i,cards[i]);
+		std::string windowName = "card "+std::to_string(i);
+		std::cout<<"printing card number "<<i<<": "<<windowName<<std::endl;
+		imshow(windowName,cards[i]);
 	}
 	/**/
 
@@ -225,6 +266,7 @@ void main() {
 		std::cout<<"printing deck card number "<<i<<": "<<windowName<<std::endl;
 		imshow(windowName,deck[i].view);
 	}
+	/**/
 
 	//allow opencv window to stay open
 	waitKey(0);
